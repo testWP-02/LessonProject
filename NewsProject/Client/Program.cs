@@ -11,6 +11,7 @@ using Blazor.FileReader;
 using NewsProject.Client.Helpers;
 using NewsProject.Client.Repository;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
 
 namespace NewsProject.Client
 {
@@ -21,7 +22,10 @@ namespace NewsProject.Client
             var builder = WebAssemblyHostBuilder.CreateDefault(args);
             builder.RootComponents.Add<App>("app");
 
-            builder.Services.AddTransient(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
+            builder.Services.AddHttpClient<HttpClientWithToken>(sp => sp.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress))
+                   .AddHttpMessageHandler<BaseAddressAuthorizationMessageHandler>();
+
+            builder.Services.AddHttpClient<HttpClientWithoutToken>(sp => sp.BaseAddress = new Uri(builder.HostEnvironment.BaseAddress));
 
             ConfigureServices(builder.Services);
 

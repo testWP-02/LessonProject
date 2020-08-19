@@ -47,7 +47,7 @@ namespace NewsProject.Client.Repository
 
         public async Task<List<Image>> GetImageByName(string name) //This metod using in BlazorProject.Client/Pages/News/NewsForm
         {
-            var response = await _httpService.Get<List<Image>>($"{url}/search/{name}");
+            var response = await _httpService.Get<List<Image>>($"{url}/search/{name}", includeToken: false);
 
             if (!response.Success)
             {
@@ -59,12 +59,12 @@ namespace NewsProject.Client.Repository
 
         public async Task<PaginatedResponse<List<Image>>> GetImages(PaginationDTO paginationDTO)//PaginatedResponse locating in BlazorProject.Shared/DataTransferObjects/PaginatedResponse
         {
-            return await _httpService.GetHelper<List<Image>>(url, paginationDTO);
+            return await _httpService.GetHelper<List<Image>>(url, paginationDTO, includeToken: false);
         }
 
         public async Task<Image> GetItemById(int id)
         {
-            return await _httpService.GetHelper<Image>($"{url}/{id}");
+            return await _httpService.GetHelper<Image>($"{url}/{id}", includeToken: false);
         }
     }
 }

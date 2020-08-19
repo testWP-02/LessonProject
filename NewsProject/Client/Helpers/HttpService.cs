@@ -7,18 +7,32 @@ namespace NewsProject.Client.Helpers
 {
     public class HttpService : IHttpService
     {
-        private readonly HttpClient _httpClient;
-
+        private readonly HttpClientWithToken httpClientWithToken;
+        private readonly HttpClientWithoutToken httpClientWithoutToken;
         private JsonSerializerOptions defaultJsonSerializerOptions =>
             new JsonSerializerOptions() { PropertyNameCaseInsensitive = true };
 
-        public HttpService(HttpClient httpClient)
+        public HttpService(HttpClientWithToken httpClientWithToken, HttpClientWithoutToken httpClientWithoutToken)
         {
-            _httpClient = httpClient;
+            this.httpClientWithToken = httpClientWithToken;
+            this.httpClientWithoutToken = httpClientWithoutToken;
         }
 
-        public async Task<HttpResponseWrapper<T>> Get<T>(string url)
+        private HttpClient GetHttpClient(bool includeToken = true)
         {
+            if (includeToken)
+            {
+                return httpClientWithToken._httpClient;
+            }
+            else
+            {
+                return httpClientWithoutToken.HttpClient;
+            }
+        }
+
+        public async Task<HttpResponseWrapper<T>> Get<T>(string url, bool includeToken = true)
+        {
+            var _httpClient = GetHttpClient(includeToken);
             var responseHTTP = await _httpClient.GetAsync(url);
 
             if (responseHTTP.IsSuccessStatusCode)
@@ -34,6 +48,8 @@ namespace NewsProject.Client.Helpers
 
         public async Task<HttpResponseWrapper<object>> Post<T>(string url, T data)
         {
+            var _httpClient = GetHttpClient();
+
             var dataJson = JsonSerializer.Serialize(data);
             var stringContent = new StringContent(dataJson, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync(url, stringContent);
@@ -42,14 +58,18 @@ namespace NewsProject.Client.Helpers
 
         public async Task<HttpResponseWrapper<object>> Put<T>(string url, T data)
         {
+            var _httpClient = GetHttpClient();
+
             var dataJson = JsonSerializer.Serialize(data);
             var stringContent = new StringContent(dataJson, Encoding.UTF8, "application/json");
             var response = await _httpClient.PutAsync(url, stringContent);
             return new HttpResponseWrapper<object>(null, response.IsSuccessStatusCode, response);
         }
 
-        public async Task<HttpResponseWrapper<TResponse>> Post<T, TResponse>(string url, T data)
+        public async Task<HttpResponseWrapper<TResponse>> Post<T, TResponse>(string url, T data, bool includeToken = true)
         {
+            var _httpClient = GetHttpClient(includeToken);
+
             var dataJson = JsonSerializer.Serialize(data);
             var stringContent = new StringContent(dataJson, Encoding.UTF8, "application/json");
             var response = await _httpClient.PostAsync(url, stringContent);
@@ -73,6 +93,8 @@ namespace NewsProject.Client.Helpers
 
         public async Task<HttpResponseWrapper<object>> Delete(string url)
         {
+            var _httpClient = GetHttpClient();
+
             var responseHTTP = await _httpClient.DeleteAsync(url);
             return new HttpResponseWrapper<object>(null, responseHTTP.IsSuccessStatusCode, responseHTTP);
         }

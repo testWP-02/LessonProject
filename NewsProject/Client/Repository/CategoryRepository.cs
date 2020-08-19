@@ -40,7 +40,7 @@ namespace NewsProject.Client.Repository
 
         public async Task<List<Category>> GetCategorie()
         {
-            var response = await _httpService.Get<List<Category>>(url);
+            var response = await _httpService.Get<List<Category>>(url, includeToken: false);
 
             if (!response.Success)
             {
@@ -52,12 +52,12 @@ namespace NewsProject.Client.Repository
 
         public async Task<PaginatedResponse<List<Category>>> GetCategories(PaginationDTO paginationDTO)//PaginatedResponse locating in BlazorProject.Shared/DataTransferObjects/PaginatedResponse
         {
-            return await _httpService.GetHelper<List<Category>>(url, paginationDTO);
+            return await _httpService.GetHelper<List<Category>>(url, paginationDTO, includeToken: false);
         }
 
         public async Task<Category> GetCategories(int id)
         {
-            var response = await _httpService.Get<Category>($"{url}/{id}");
+            var response = await _httpService.Get<Category>($"{url}/{id}", includeToken: false);
             if (!response.Success)
             {
                 throw new ApplicationException(await response.GetBody());

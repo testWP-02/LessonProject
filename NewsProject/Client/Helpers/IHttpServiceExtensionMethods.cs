@@ -7,9 +7,9 @@ namespace NewsProject.Client.Helpers
 {
     public static class IHttpServiceExtensionMethods
     {
-        public static async Task<T> GetHelper<T>(this IHttpService _httpService, string url)
+        public static async Task<T> GetHelper<T>(this IHttpService _httpService, string url, bool includeToken = true)
         {
-            var response = await _httpService.Get<T>(url);
+            var response = await _httpService.Get<T>(url, includeToken);
             if (!response.Success)
             {
                 throw new ApplicationException(await response.GetBody());
@@ -18,7 +18,7 @@ namespace NewsProject.Client.Helpers
         }
 
         //This method working with /NewsProject/Server/Helpers/HttpContextExtensions
-        public static async Task<PaginatedResponse<T>> GetHelper<T>(this IHttpService _httpService, string url, PaginationDTO paginationDTO)
+        public static async Task<PaginatedResponse<T>> GetHelper<T>(this IHttpService _httpService, string url, PaginationDTO paginationDTO, bool includeToken = true)
         {
             string newUrl = "";
 
@@ -31,7 +31,7 @@ namespace NewsProject.Client.Helpers
                 newUrl = $"{url}?page={paginationDTO.Page}&recordsPerPage={paginationDTO.RecordsPerPage}";
             }
 
-            var httpResponse = await _httpService.Get<T>(newUrl);
+            var httpResponse = await _httpService.Get<T>(newUrl, includeToken);
 
             var totalAmountPages = int.Parse(httpResponse.HttpResponseMessage.Headers.GetValues("totalAmountPages").FirstOrDefault());
 

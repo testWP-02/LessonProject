@@ -22,6 +22,7 @@ namespace NewsProject.Server
     {
         public Startup(IConfiguration configuration)
         {
+            JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
             Configuration = configuration;
         }
 
@@ -36,7 +37,8 @@ namespace NewsProject.Server
                 options.SignIn.RequireConfirmedAccount = false;
             }).AddRoles<IdentityRole>().AddEntityFrameworkStores<ApplicationDbContext>();
 
-            services.AddIdentityServer().AddApiAuthorization<IdentityUser, ApplicationDbContext>();
+            services.AddIdentityServer().AddApiAuthorization<IdentityUser, ApplicationDbContext>()
+                                        .AddProfileService<IdentityProfileService>();
 
             services.AddAuthentication().AddIdentityServerJwt();
 

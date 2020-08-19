@@ -48,7 +48,7 @@ namespace NewsProject.Client.Repository
 
         public async Task<List<Person>> GetPeopleByName(string name) //This metod using in BlazorProject.Client/Pages/News/NewsForm
         {
-            var response = await _httpService.Get<List<Person>>($"{url}/search/{name}");
+            var response = await _httpService.Get<List<Person>>($"{url}/search/{name}", includeToken: false);
 
             if (!response.Success)
             {
@@ -60,17 +60,17 @@ namespace NewsProject.Client.Repository
 
         public async Task<PaginatedResponse<List<Person>>> GetPeople(PaginationDTO paginationDTO)//PaginatedResponse locating in BlazorProject.Shared/DataTransferObjects/PaginatedResponse
         {
-            return await _httpService.GetHelper<List<Person>>(url, paginationDTO);
+            return await _httpService.GetHelper<List<Person>>(url, paginationDTO, includeToken: false);
         }
 
         public async Task<Person> GetPersonById(int id)
         {
-            return await _httpService.GetHelper<Person>($"{url}/{id}");
+            return await _httpService.GetHelper<Person>($"{url}/{id}", includeToken: false);
         }
 
         public async Task<PaginatedResponse<List<Person>>> GetPeopleFiltered(FilterItemDTO filterItemDTO)
         {
-            var responseHTTP = await _httpService.Post<FilterItemDTO, List<Person>>($"{url}/filter", filterItemDTO);
+            var responseHTTP = await _httpService.Post<FilterItemDTO, List<Person>>($"{url}/filter", filterItemDTO, includeToken: false);
             var totalAmountPages = int.Parse(responseHTTP.HttpResponseMessage.Headers.GetValues("totalAmountPages").FirstOrDefault());
 
             var paginatedResponse = new PaginatedResponse<List<Person>>()

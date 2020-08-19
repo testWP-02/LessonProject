@@ -31,7 +31,7 @@ namespace NewsProject.Client.Repository
 
         public async Task<DetailsNewsDTO> GetDetailsNewsDTO(int id) //this action needing for gettind object details. 
         {
-            return await _httpService.GetHelper<DetailsNewsDTO>($"{url}/{id}");
+            return await _httpService.GetHelper<DetailsNewsDTO>($"{url}/{id}", includeToken: false);
         }
 
         public async Task<List<News>> GetNewses()
@@ -48,12 +48,12 @@ namespace NewsProject.Client.Repository
 
         public async Task<PaginatedResponse<List<News>>> GetNewsForPagination(PaginationDTO paginationDTO)//PaginatedResponse locating in BlazorProject.Shared/DataTransferObjects/PaginatedResponse
         {
-            return await _httpService.GetHelper<List<News>>(url, paginationDTO);
+            return await _httpService.GetHelper<List<News>>(url, paginationDTO, includeToken: false);
         }
 
         public async Task<PaginatedResponse<List<News>>> GetNewsesFiltered(FilterNewsDTO filterNewsDTO)
         {
-            var responseHTTP = await _httpService.Post<FilterNewsDTO, List<News>>($"{url}/filter", filterNewsDTO);
+            var responseHTTP = await _httpService.Post<FilterNewsDTO, List<News>>($"{url}/filter", filterNewsDTO, includeToken: false);
             var totalAmountPages = int.Parse(responseHTTP.HttpResponseMessage.Headers.GetValues("totalAmountPages").FirstOrDefault());
 
             var paginatedResponse = new PaginatedResponse<List<News>>()

@@ -19,7 +19,7 @@ namespace NewsProject.Client.Repository
 
         public async Task<PaginatedResponse<List<UserDTO>>> GetUsers(PaginationDTO paginationDTO)
         {
-            return await _httpService.GetHelper<List<UserDTO>>(url, paginationDTO);
+            return await _httpService.GetHelper<List<UserDTO>>(url, paginationDTO, includeToken: false);
         }
 
         public async Task<List<RoleDTO>> GetRoles()
