@@ -1,0 +1,35 @@
+﻿@page "/category/edit/{categoryID:int}"
+
+@inject ICategoryRepository _context
+@inject NavigationManager navigationManager
+@attribute [Authorize]
+
+<h3>Edit Category</h3>
+
+@if (category != null)
+{
+    <CategoryForm category="category" OnValidSubmit="Edit"></CategoryForm>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+
+@code {
+    //Realisation locate in Pages/Categories/CategoryForm
+
+    [Parameter] public int CategoryId { get; set; }
+    public Category category;
+
+    protected async override Task OnInitializedAsync()
+    {
+        category = await _context.GetCategories(CategoryId);
+    }
+
+    private void Edit()
+    {
+        _context.UpdateCategory(category);
+        navigationManager.NavigateTo("category/index");
+    }
+}

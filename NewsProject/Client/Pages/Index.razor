@@ -1,0 +1,15 @@
+﻿@page "/"
+
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        @context.User.Identity.Name
+    </Authorized>
+    <NotAuthorized>
+        Not authorized
+    </NotAuthorized>
+</AuthorizeView>
+
+@code
+{
+    
+}

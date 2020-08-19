@@ -1,0 +1,30 @@
+﻿@page "/category/create"
+
+@inject ICategoryRepository _context
+@inject NavigationManager navigationManager
+@attribute [Authorize]
+
+<h3>Create Category</h3>
+
+<CategoryForm category="category" OnValidSubmit="Create"></CategoryForm>
+
+@code {
+    //Realisation locate in Pages/Categories/CategoryForm
+
+    private Category category = new Category();
+
+    private async Task Create()
+    {
+        Console.WriteLine(category.Name);
+
+        try
+        {
+            await _context.CreateCategory(category);
+            navigationManager.NavigateTo("category/index");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

@@ -1,0 +1,133 @@
+﻿@inject IPersonRepository personRepository
+@inject IImagesRepository imagesRepository
+
+<EditForm Model="news" OnValidSubmit="OnDataAnnotationsValidated">
+    <DataAnnotationsValidator />
+
+    <div class="form-group">
+        <label>Title</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@news.Title"></InputText>
+            <ValidationMessage For="@(() => news.Title)"></ValidationMessage>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Release Date</label>
+        <div>
+            <InputDate class="form-control" @bind-Value="@news.ReleaseDate"></InputDate>
+            <ValidationMessage For="@(() => news.ReleaseDate)"></ValidationMessage>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Video URL-address</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@news.Video"></InputText>
+            <ValidationMessage For="@(() => news.Video)"></ValidationMessage>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <InputImg Label="Poster" OnSelectedImage="PictureSelected" ImageURL="@imageURL" />
+    </div>
+
+    <div class="form-group form-markdown">
+        <InputMarkdown @bind-Value="@news.NewsData" Label="News Data" For="@(() => news.NewsData)" />
+    </div>
+
+    <div class="form-group">
+        <label>Categories:</label>
+        <div>
+            @*Chose category for news, realese locate in Shared/Components/MultipleSelector*@
+            <MultipleSelector Selected="Selected" NoSelected="NotSelected"></MultipleSelector>@*Don't forget! Count view items depend of /NewsProject/DTO/PaginationDTO/setting RecordsPerPage!!!*@
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>News details</label>
+        <div>
+            <p>News managers</p>
+            <MultipleSelectorTypeahead Context="person" SearchMethod="SearchMethod" SelectedElements="SelectedEmployees">
+                <MyResultTemplate>
+                    <img style="width: 100px; height: 100px;" src="@person.Photo" />
+                    @person.Name
+                </MyResultTemplate>
+                <MyListTemplate>
+                    <img style="width: 100px; height: 100px;" src="@person.Photo" /> @person.Name / <input type="text" placeholder="Character" @bind="person.Position" />
+                </MyListTemplate>
+            </MultipleSelectorTypeahead>
+
+            <hr />
+            <p>Database images</p>
+            <MultipleSelectorTypeahead Context="images" SearchMethod="SearchImageMethod" SelectedElements="SelectedImages">
+                <MyResultTemplate>
+                    <img style="width: 100px; height: 100px;" src="@images.Picture" />
+                    @images.Name
+                </MyResultTemplate>
+                    <MyListTemplate>
+                        <img style="width: 100px; height: 100px;" src="@images.Picture" /> @images.Name / <input type="text" placeholder="Picture character" @bind="@images.ImagesCharacter" />
+                    </MyListTemplate>
+                </MultipleSelectorTypeahead>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-success">Submit</button>
+
+</EditForm>
+
+@code {
+    [Parameter] public News news { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public List<Category> SelectedCategories { get; set; } = new List<Category>();
+    [Parameter] public List<Category> NotSelectedCategories { get; set; } = new List<Category>();
+    [Parameter] public List<Person> SelectedEmployees { get; set; } = new List<Person>();
+
+    [Parameter] public List<Image> SelectedImages { get; set; } = new List<Image>();
+
+    private List<MultipleSelectorModel> Selected = new List<MultipleSelectorModel>();
+    private List<MultipleSelectorModel> NotSelected = new List<MultipleSelectorModel>();
+
+    string imageURL;
+
+    protected override void OnInitialized()
+    {
+        Selected = SelectedCategories.Select(p => new MultipleSelectorModel(p.Id.ToString(), p.Name)).ToList();
+        NotSelected = NotSelectedCategories.Select(p => new MultipleSelectorModel(p.Id.ToString(), p.Name)).ToList();
+
+        if (!string.IsNullOrEmpty(news.Poster))
+        {
+            imageURL = news.Poster;
+            news.Poster = null;
+        }
+    }
+
+    private void PictureSelected(string imageBase64)
+    {
+        news.Poster = imageBase64;
+        imageURL = null;
+    }
+
+    private async Task<IEnumerable<Person>> SearchMethod(string searchText)
+    {
+        return await personRepository.GetPeopleByName(searchText);
+    }
+
+    private async Task<IEnumerable<Image>> SearchImageMethod(string searchText)
+    {
+        return await imagesRepository.GetImageByName(searchText);
+    }
+
+    private async Task OnDataAnnotationsValidated()
+    {
+        news.NewsCategories = Selected.Select(o => new NewsCategory { CategoryId = int.Parse(o.Key) }).ToList();
+
+        news.NewsManagers = SelectedEmployees.Select(o => new NewsManagers { PersonId = o.Id, Character = o.Position }).ToList();
+
+        news.NewsImages = SelectedImages.Select(o => new DatabaseImages { ImageId = o.Id, Character = o.ImagesCharacter }).ToList();
+
+        if (!string.IsNullOrWhiteSpace(news.Poster)) { imageURL = null; }
+
+        await OnValidSubmit.InvokeAsync(null);
+    }
+}

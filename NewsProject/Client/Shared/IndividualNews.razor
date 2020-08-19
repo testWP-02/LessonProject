@@ -1,0 +1,28 @@
+﻿<div class="individual-container">
+    <img src="@item.Poster" alt="Poster" class="item-poster" />
+    <p>@item.TitleBrif - @item.ReleaseDate.Value.ToString("dd MMM yyyy")</p>
+    <hr />
+    <br />
+    <div>
+        <a href="@itemUrl" target="_blank" class="btn btn-outline-primary">Details</a>
+        <AuthorizeView Roles="Admin">
+            <Authorized>
+                <a href="/news/edit/@item.Id" class="btn btn-outline-warning">Edit</a>
+                <button type="button" class="btn btn-outline-danger" @onclick="@(() => DeleteObject.InvokeAsync(item))">Delete</button>
+            </Authorized>
+        </AuthorizeView>
+    </div>
+</div>
+
+@code {
+    //realisation for this codeblock located in Shared/Components/NewsList
+
+    [Parameter] public News item { get; set; }
+    [Parameter] public EventCallback<News> DeleteObject { get; set; }
+    private string itemUrl = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        itemUrl = $"news/{item.Id}";
+    }
+}

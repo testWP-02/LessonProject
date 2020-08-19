@@ -1,0 +1,28 @@
+﻿@inject INewsRepository _context
+@inject IJSRuntime js
+
+
+<div class="item-container">
+    <GenericList List="Newses">
+    @*realisation located in Shared/Components/GenericList*@
+        <ElementTemplate Context="news">
+            <IndividualNews item="news" DeleteObject="DeleteItem" @key="news.Id"></IndividualNews>
+        </ElementTemplate>
+    </GenericList>
+</div>
+
+
+@code {
+    [Parameter] public List<News> Newses { get; set; }
+
+    private async Task DeleteItem(News item)
+    {
+        var confirmed = await js.Confirm($"Delete {item.Id}?");
+
+        if (confirmed)
+        {
+            await _context.DeleteNews(item.Id);
+            Newses.Remove(item);
+        }
+    }
+}

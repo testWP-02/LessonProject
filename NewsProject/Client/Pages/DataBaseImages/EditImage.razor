@@ -1,0 +1,34 @@
+﻿@page "/image/edit/{ImageId:int}"
+
+@inject IImagesRepository _context
+@inject NavigationManager navigationManager
+@attribute [Authorize]
+
+<h3>Edit Image</h3>
+
+@if (image != null)
+{
+    <ImageForm image="image" OnValidSubmit="Edit"></ImageForm>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+
+@code {
+    [Parameter] public int ImageId { get; set; }
+
+    Image image;
+
+    protected async override Task OnInitializedAsync()
+    {
+        image = await _context.GetItemById(ImageId);
+    }
+
+    private async Task Edit()
+    {
+        await _context.Update(image);
+        navigationManager.NavigateTo("images");
+    }
+}

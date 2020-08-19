@@ -1,0 +1,92 @@
+﻿@page "/category/index"
+
+@inject ICategoryRepository _context
+@inject IJSRuntime js
+@attribute [Authorize]
+
+<h3 class="text-center">Category List</h3>
+
+<div class="container">
+    <div class="form-group">
+        <a href="/category/create" class="btn btn-warning">Add Category</a>
+    </div>
+
+    <GenericList List="categories">
+        <WholeListTemplate>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in categories)
+                    {
+                        <tr>
+                            <td>
+                                @item.Name
+                            </td>
+                            <td>
+                                <AuthorizeView Roles="Admin">
+                                    <Authorized>
+                                        <a href="/category/edit/@item.Id" class="btn btn-sm btn-warning">Edit Category</a>
+                                        <button class="btn btn-sm btn-danger" @onclick="@(() => DeleteCategory(item.Id))">Delete</button>
+                                    </Authorized>
+                                </AuthorizeView>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </WholeListTemplate>
+    </GenericList>
+
+    <Pagination CurrentPage="@paginationDTO.Page" TotaPagesQuantity="totalAmountPages" SelectedPage="SelectedPage"></Pagination>
+
+</div>
+
+
+
+@code {
+
+    List<Category> categories;
+    PaginationDTO paginationDTO = new PaginationDTO() { RecordsPerPage = 20 };
+    private int totalAmountPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadCategories();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task DeleteCategory(int id)
+    {
+        var confirmed = await js.Confirm($"Confirm delete");
+
+        if (confirmed)
+        {
+            await _context.DeleteCategory(id);
+            await LoadCategories();
+        }
+    }
+
+    private async Task SelectedPage(int page)
+    {
+        paginationDTO.Page = page;
+        await LoadCategories();
+    }
+
+    private async Task LoadCategories()
+    {
+        var paginatedResponse = await _context.GetCategories(paginationDTO);
+        categories = paginatedResponse.Response;
+        totalAmountPages = paginatedResponse.TotalAmountPages;
+    }
+}

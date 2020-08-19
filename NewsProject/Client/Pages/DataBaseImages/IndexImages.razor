@@ -1,0 +1,91 @@
+﻿@page "/images"
+
+@inject IImagesRepository _context
+@inject IJSRuntime js
+@attribute [Authorize]
+
+<div class="container">
+    <div class="form-group">
+        <a class="btn btn-info" href="image/create">Upload</a>
+    </div>
+
+    <GenericList List="Images">
+        <WholeListTemplate>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Character</th>
+                        <th>Date of upload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Images)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@item.Picture" style="height:50px; width:50px;" />
+                            </td>
+                            <td>@item.Name</td>
+                            <td>@item.ImagesCharacter</td>
+                            <td>@item.DateOfUpload.Value.ToString("dd MMM yyyy")</td>
+                            <td>
+                                <AuthorizeView Roles="Admin">
+                                    <Authorized>
+                                        <a href="image/edit/@item.Id" class="btn btn-sm btn-warning">Edit</a>
+                                        <button class="btn btn-sm btn-danger" @onclick="@(() => Delete(item.Id))">Delete</button>
+                                    </Authorized>
+                                </AuthorizeView>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </WholeListTemplate>
+    </GenericList>
+
+    <Pagination CurrentPage="@paginationDTO.Page" TotaPagesQuantity="totalAmountPages" SelectedPage="SelectedPage"></Pagination>
+</div>
+
+@code {
+    List<Image> Images;
+    PaginationDTO paginationDTO = new PaginationDTO() { RecordsPerPage = 2 };
+    private int totalAmountPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await Load();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task Delete(int id)
+    {
+        var confirmed = await js.Confirm($"Confirm delete");
+
+        if (confirmed)
+        {
+            await _context.Delete(id);
+            await Load();
+        }
+    }
+
+    private async Task SelectedPage(int page)
+    {
+        paginationDTO.Page = page;
+        await Load();
+    }
+
+    private async Task Load()
+    {
+        var paginatedResponse = await _context.GetImages(paginationDTO);
+        Images = paginatedResponse.Response;
+        totalAmountPages = paginatedResponse.TotalAmountPages;
+    }
+}

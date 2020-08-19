@@ -1,0 +1,27 @@
+﻿@page "/image/create"
+@inject IImagesRepository _context
+@inject NavigationManager navigationManager
+@attribute [Authorize]
+
+<h3>Upload image</h3>
+
+<ImageForm image="image" OnValidSubmit="Create"></ImageForm>
+
+@code {
+    Image image = new Image();
+
+    private async Task Create()
+    {
+        try
+        {
+            await _context.Create(image);
+            navigationManager.NavigateTo("images");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        Console.WriteLine($"Succses!");
+    }
+}

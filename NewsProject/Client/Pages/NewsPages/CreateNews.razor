@@ -1,0 +1,39 @@
+﻿@page "/news/create"
+
+@inject NavigationManager navigationManager
+@inject INewsRepository _context
+@inject ICategoryRepository categoryRepository
+@attribute [Authorize]
+
+<h3>Create News</h3>
+
+@if (NotSelectedCategories != null)
+{
+    <NewsForm news="news" OnValidSubmit="SaveObject" NotSelectedCategories="NotSelectedCategories"></NewsForm>
+}
+
+
+@code {
+    //Realisation locate in Pages/News/NewsForm
+    private News news = new News();
+
+    protected async override Task OnInitializedAsync()
+    {
+        NotSelectedCategories = await categoryRepository.GetCategorie();
+    }
+
+    private List<Category> NotSelectedCategories;
+
+    private async Task SaveObject()
+    {
+        try
+        {
+            var newsId = await _context.Create(news);
+            navigationManager.NavigateTo($"news/{newsId}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+}

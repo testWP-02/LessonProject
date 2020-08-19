@@ -1,0 +1,28 @@
+﻿@inject IPersonRepository _context
+@inject IJSRuntime js
+
+
+<div class="item-container">
+    <GenericList List="People">
+        @*realisation located in Shared/Components/GenericList*@
+        <ElementTemplate Context="person">
+            <IndividualPerson item="person" DeleteObject="DeleteItem" @key="person.Id"></IndividualPerson>
+        </ElementTemplate>
+    </GenericList>
+</div>
+
+
+@code {
+    [Parameter] public List<Person> People { get; set; }
+
+    private async Task DeleteItem(Person item)
+    {
+        var confirmed = await js.Confirm($"Delete {item.Name}?");
+
+        if (confirmed)
+        {
+            await _context.DeletePerson(item.Id);
+            People.Remove(item);
+        }
+    }
+}

@@ -1,0 +1,88 @@
+﻿<EditForm Model="Person" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator />
+
+    <div class="form-group">
+        <label for="name">Name</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@Person.Name"></InputText>
+            <ValidationMessage For="@(() => Person.Name)"></ValidationMessage>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="name">Department</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@Person.Department"></InputText>
+            <ValidationMessage For="@(() => Person.Department)"></ValidationMessage>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="name">Position</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@Person.Position"></InputText>
+            <ValidationMessage For="@(() => Person.Position)"></ValidationMessage>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="name">Cabinet</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@Person.Cabinet"></InputText>
+            <ValidationMessage For="@(() => Person.Cabinet)"></ValidationMessage>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="name">Work phone</label>
+        <div>
+            <InputText class="form-control" @bind-Value="@Person.Phone"></InputText>
+            <ValidationMessage For="@(() => Person.Phone)"></ValidationMessage>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label for="name">Date Of Work</label>
+        <div>
+            <InputDate class="form-control" @bind-Value="@Person.DateOfWork"></InputDate>
+            <ValidationMessage For="@(() => Person.DateOfWork)"></ValidationMessage>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>In work:</label>
+        <div>
+            <InputCheckbox @bind-Value="@Person.InWork" />
+            <ValidationMessage For="@(() => Person.InWork)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <InputImg Label="Employee Photo" OnSelectedImage="PictureSelected" ImageURL="@imageURL" />
+    </div>
+
+    <button type="submit" class="btn btn-success">Submit</button>
+</EditForm>
+
+@code {
+    [Parameter] public Person Person { get; set; }
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+
+    string imageURL;
+
+    protected override void OnInitialized()
+    {
+
+        if (!string.IsNullOrEmpty(Person.Photo))
+        {
+            imageURL = Person.Photo;
+            Person.Photo = null;
+        }
+    }
+
+    private void PictureSelected(string imageBase64)
+    {
+        Person.Photo = imageBase64;
+        imageURL = null;
+    }
+}

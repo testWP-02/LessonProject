@@ -1,0 +1,49 @@
+﻿@page "/news/edit/{newsId:int}"
+
+@inject INewsRepository _context
+@inject NavigationManager navigationManager
+@attribute [Authorize]
+
+<h3>Edit Product</h3>
+
+@if (news != null)
+{
+    <NewsForm news="news" OnValidSubmit="Edit" NotSelectedCategories="NotSelectedCategories"
+              SelectedCategories="SelectedCategories" SelectedEmployees="SelectedManagers" SelectedImages="SelectedImages">
+
+    </NewsForm>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    //Realisation locate in Pages/Products/ProductForm
+    [Parameter] public int newsId { get; set; }
+    private News news;
+
+    private List<Category> NotSelectedCategories;
+    private List<Category> SelectedCategories;
+    private List<Person> SelectedManagers;
+    private List<Image> SelectedImages;
+
+
+    protected async override Task OnInitializedAsync()
+    {
+        var model = await _context.GetNewsForUpdate(newsId);
+        news = model.News;
+
+        SelectedManagers = model.Managers;
+        SelectedImages = model.Images;
+        SelectedCategories = model.SelectedCategories;
+        NotSelectedCategories = model.NotSelectedCategories;
+    }
+
+    private async Task Edit()
+    {
+        await _context.UpdateNews(news);
+        navigationManager.NavigateTo($"news/{newsId}");
+    }
+
+}

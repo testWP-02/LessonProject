@@ -1,0 +1,125 @@
+﻿@page "/news/search"
+@inject INewsRepository _repository
+@inject ICategoryRepository _catRepository
+@inject NavigationManager navigationManager
+
+<div>
+    <h3>Search News</h3>
+    <EditForm Model="filteritemDTO">
+        <div class="form-inline">
+            <div class="form-group mb-2">
+                <label for="name" class="sr-only">Name</label>
+                <input type="text" class="form-control" id="name" placeholder="Product Name"
+                       @bind-value="filteritemDTO.Title" @bind-value:event="oninput"
+                       @onkeypress="@((KeyboardEventArgs e) => NameKeyPress(e))" />
+            </div>
+            <div class="form-group mx-sm-3 mb-2">
+                <select class="form-control" @bind="filteritemDTO.CategoryId">
+                    <option value="0">
+                        Select Category
+                    </option>
+                    @foreach (var category in Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+            </div>
+
+            <button type="button" class="btn btn-success mb-2 mx-sm-3" @onclick="SearchForItem">Search</button>
+            <button type="button" class="btn btn-warning mb-2" @onclick="Clear">Clear</button>
+
+        </div>
+    </EditForm>
+
+    <NewsList Newses="news"></NewsList>
+
+    <Pagination CurrentPage="filteritemDTO.Page" TotaPagesQuantity="totalAmountPages" SelectedPage="SelectedPage"></Pagination>
+</div>
+@code {
+    private List<News> news;
+    private List<Category> Categories = new List<Category>();
+    private int totalAmountPages;
+    private FilterNewsDTO filteritemDTO = new FilterNewsDTO();
+
+    protected async override Task OnInitializedAsync()
+    {
+        var queryStrings = navigationManager.GetQueryStrings(navigationManager.Uri);
+
+        Categories = await _catRepository.GetCategorie();
+
+        if (queryStrings != null)
+        {
+            FilterWithQueryStrings(queryStrings);
+        }
+        await LoadItem();
+    }
+
+    private void FilterWithQueryStrings(Dictionary<string, string> queryStrings)
+    {
+        if (queryStrings.ContainsKey("categoryId"))
+        {
+            filteritemDTO.CategoryId = int.Parse(queryStrings["categoryId"]);
+        }
+        if (queryStrings.ContainsKey("title"))
+        {
+            filteritemDTO.Title = queryStrings["title"];
+        }
+        if (queryStrings.ContainsKey("page"))
+        {
+            filteritemDTO.Page = int.Parse(queryStrings["page"]);
+        }
+    }
+
+    private async Task SelectedPage(int page)
+    {
+        filteritemDTO.Page = page;
+        await LoadItem();
+    }
+
+    private async Task LoadItem()
+    {
+        var queryString = GenerateQueryString();
+        if (!string.IsNullOrWhiteSpace(queryString))
+        {
+            queryString = $"?{queryString}";
+            navigationManager.NavigateTo("news/search" + queryString);
+        }
+        var paginatedResponse = await _repository.GetNewsesFiltered(filteritemDTO);
+        news = paginatedResponse.Response;
+        totalAmountPages = paginatedResponse.TotalAmountPages;
+    }
+
+    private async Task NameKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SearchForItem();
+        }
+    }
+
+    private async Task SearchForItem()
+    {
+        await LoadItem();
+    }
+
+    private string GenerateQueryString()
+    {
+        var queryStringsDict = new Dictionary<string, string>();
+        queryStringsDict["categoryId"] = filteritemDTO.CategoryId.ToString();
+        queryStringsDict["title"] = filteritemDTO.Title ?? "";
+        queryStringsDict["page"] = filteritemDTO.Page.ToString();
+
+        var defaultValue = new List<string>() { "false", "", "0" };
+
+        return string.Join("&", queryStringsDict.Where(x => !defaultValue.Contains(x.Value.ToLower())).
+                      Select(x => $"{x.Key}={System.Web.HttpUtility.UrlEncode(x.Value)}").ToArray());
+    }
+
+    private async Task Clear()
+    {
+        filteritemDTO.Title = "";
+        filteritemDTO.CategoryId = 0;
+
+        await LoadItem();
+    }
+}

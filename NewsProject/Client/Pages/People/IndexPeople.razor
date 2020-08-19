@@ -1,0 +1,105 @@
+﻿@page "/people"
+
+@inject IPersonRepository _context
+@inject IJSRuntime js
+@attribute [Authorize]
+
+<h3>Our Personal</h3>
+
+<div class="container">
+    <div class="form-group">
+        <a class="btn btn-info" href="person/create">Add Person</a>
+    </div>
+
+    <GenericList List="person">
+        <WholeListTemplate>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Name</th>
+                        <th>Department</th>
+                        <th>Position</th>
+                        <th>Cabinet</th>
+                        <th>Phone</th>
+                        <th>In Work</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in person)
+                    {
+                        <tr>
+                            <td>
+                                <img src="@item.Photo" style="height:50px; width:50px;" />
+                            </td>
+                            <td>@item.Name</td>
+                            <td>@item.Department</td>
+                            <td>@item.Position</td>
+                            <td>@item.Cabinet</td>
+                            <td>@item.Phone</td>
+                            <td>
+                                @if (!item.InWork)
+                                {
+                                    <p>Isn't work</p>
+                                }
+                                else
+                                {
+                                    <p>In work</p>
+                                }
+                            </td>
+                            <td>
+                                <a href="person/edit/@item.Id" class="btn btn-sm btn-warning">Edit Employees</a>
+                                <button class="btn btn-sm btn-danger" @onclick="@(() => DeletePeople(item.Id))">Delete</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </WholeListTemplate>
+    </GenericList>
+
+    <Pagination CurrentPage="@paginationDTO.Page" TotaPagesQuantity="totalAmountPages" SelectedPage="SelectedPage"></Pagination>
+</div>
+
+@code {
+    List<Person> person;
+    PaginationDTO paginationDTO = new PaginationDTO() { RecordsPerPage = 2 };
+    private int totalAmountPages;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            await LoadPeople();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+    }
+
+    private async Task DeletePeople(int id)
+    {
+        var confirmed = await js.Confirm($"Confirm delete");
+
+        if (confirmed)
+        {
+            await _context.DeletePerson(id);
+            await LoadPeople();
+        }
+    }
+
+    private async Task SelectedPage(int page)
+    {
+        paginationDTO.Page = page;
+        await LoadPeople();
+    }
+
+    private async Task LoadPeople()
+    {
+        var paginatedResponse = await _context.GetPeople(paginationDTO);
+        person = paginatedResponse.Response;
+        totalAmountPages = paginatedResponse.TotalAmountPages;
+    }
+}
